@@ -54,7 +54,8 @@ router.post('/register', async (req, res) => {
         // 7. Return the new user (excluding the password)
         res.status(201).json({
           id: newUser.id,
-          username: newUser.username
+          username: newUser.username,
+          password: newUser.password
         });
       } catch (error) {
         console.error("Error registering user:", error);
