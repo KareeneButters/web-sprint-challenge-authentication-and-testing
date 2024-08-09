@@ -32,37 +32,37 @@ router.post('/register', async (req, res) => {
   */
 
       try {
-        const { username, password } = req.body;
+        const { username, password } = req.body
     
         // 3. Check for missing username or password
         if (!username || !password) {
-          return res.status(400).json({ message: "username and password required" });
+          return res.status(400).json({ message: "username and password required" })
         }
     
         // 4. Check if username already exists
-        const existingUser = await db('users').where({ username }).first();
+        const existingUser = await db('users').where({ username }).first()
         if (existingUser) {
-          return res.status(400).json({ message: "username taken" });
+          return res.status(400).json({ message: "username taken" })
         }
     
         // 5. Hash the password
-        const hash = bcrypt.hashSync(password, 8); // 2^8 rounds
+        const hash = bcrypt.hashSync(password, 8)
     
         // 6. Save user to the database
-        const [newUser] = await db('users').insert({ username, password: hash }).returning(['id', 'username', 'password']);
+        const [newUser] = await db('users').insert({ username, password: hash }).returning(['id', 'username', 'password'])
     
-        // 7. Return the new user (excluding the password)
+        // 7. Return the new user 
         res.status(201).json({
           id: newUser.id,
           username: newUser.username,
           password: newUser.password
-        });
+        })
       } catch (error) {
-        console.error("Error registering user:", error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("Error registering user:", error)
+        res.status(500).json({ message: "Internal server error" })
       }
 
-});
+})
 
 router.post('/login', async (req, res) => {
   
@@ -90,22 +90,22 @@ router.post('/login', async (req, res) => {
       the response body should include a string exactly as follows: "invalid credentials".
   */
       try {
-        const { username, password } = req.body;
+        const { username, password } = req.body
     
         // Check for missing username or password
         if (!username || !password) {
-          return res.status(400).json({ message: "username and password required" });
+          return res.status(400).json({ message: "username and password required" })
         }
     
         // Find the user in the database
-        const user = await db('users').where({ username }).first();
+        const user = await db('users').where({ username }).first()
     
         if (!user || !bcrypt.compareSync(password, user.password)) {
-          return res.status(400).json({ message: "invalid credentials" });
+          return res.status(400).json({ message: "invalid credentials" })
         }
     
         // Generate a JWT
-        const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '5h' });
+        const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '5h' })
     
         // Send response with token
         res.status(200).json({
@@ -113,9 +113,9 @@ router.post('/login', async (req, res) => {
           token
         });
       } catch (error) {
-        console.error("Error logging in user:", error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("Error logging in user:", error)
+        res.status(500).json({ message: "Internal server error" })
       }
-});
+})
 
 module.exports = router;
