@@ -7,12 +7,12 @@ module.exports = (req, res, next) => {
 
   // 2. Check for missing token
   if (!token) {
-      return res.status(401).send("token required")
+      return res.status(401).send("missing token")
   }
   // 3. Validate the token
   jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
       if (err) {
-          return res.status(403).send("token invalid")
+          return res.status(403).send("invalid token")
       } else {
         req.decodedToken = decodedToken
         next()
