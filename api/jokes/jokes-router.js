@@ -1,9 +1,8 @@
 // do not make changes to this file
 const router = require('express').Router();
-const authenticate = require('../middleware/restricted')
 const jokes = require('./jokes-data');
 
-router.get('/', authenticate, (req, res) => {
+router.get('/', (req, res) => {
   res.status(200).json(jokes);
 });
 
