@@ -49,8 +49,10 @@ router.post('/register', async (req, res) => {
         const hash = bcrypt.hashSync(password, 8)
     
         // 6. Save user to the database
-        const [newUser] = await db('users').insert({ username, password: hash }).returning(['id', 'username', 'password'])
-    
+        const [id] = await db('users').insert({ username, password: hash })
+
+        const newUser = await db('users').where({ id }).first();
+
         // 7. Return the new user 
         res.status(201).json({
           id: newUser.id,
