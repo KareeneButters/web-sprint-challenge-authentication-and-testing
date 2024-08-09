@@ -1,7 +1,10 @@
 const router = require('express').Router();
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const db = require('../../data/dbConfig')
+const { JWT_SECRET } = require("../../secrets")
 
-router.post('/register', (req, res) => {
-  res.end('implement register, please!');
+router.post('/register', async (req, res) => {
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -27,10 +30,41 @@ router.post('/register', (req, res) => {
     4- On FAILED registration due to the `username` being taken,
       the response body should include a string exactly as follows: "username taken".
   */
+
+      try {
+        const { username, password } = req.body;
+    
+        // 3. Check for missing username or password
+        if (!username || !password) {
+          return res.status(400).json({ message: "username and password required" });
+        }
+    
+        // 4. Check if username already exists
+        const existingUser = await db('users').where({ username }).first();
+        if (existingUser) {
+          return res.status(400).json({ message: "username taken" });
+        }
+    
+        // 5. Hash the password
+        const hash = bcrypt.hashSync(password, 8); // 2^8 rounds
+    
+        // 6. Save user to the database
+        const [newUser] = await db('users').insert({ username, password: hash }).returning(['id', 'username', 'password']);
+    
+        // 7. Return the new user (excluding the password)
+        res.status(201).json({
+          id: newUser.id,
+          username: newUser.username,
+        });
+      } catch (error) {
+        console.error("Error registering user:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+
 });
 
-router.post('/login', (req, res) => {
-  res.end('implement login, please!');
+router.post('/login', async (req, res) => {
+  
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -54,6 +88,33 @@ router.post('/login', (req, res) => {
     4- On FAILED login due to `username` not existing in the db, or `password` being incorrect,
       the response body should include a string exactly as follows: "invalid credentials".
   */
+      try {
+        const { username, password } = req.body;
+    
+        // Check for missing username or password
+        if (!username || !password) {
+          return res.status(400).json({ message: "username and password required" });
+        }
+    
+        // Find the user in the database
+        const user = await db('users').where({ username }).first();
+    
+        if (!user || !bcrypt.compareSync(password, user.password)) {
+          return res.status(400).json({ message: "invalid credentials" });
+        }
+    
+        // Generate a JWT
+        const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    
+        // Send response with token
+        res.status(200).json({
+          message: `welcome, ${user.username}`,
+          token
+        });
+      } catch (error) {
+        console.error("Error logging in user:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
 });
 
 module.exports = router;
