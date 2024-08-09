@@ -52,7 +52,10 @@ router.post('/register', async (req, res) => {
         const [newUser] = await db('users').insert({ username, password: hash }).returning(['id', 'username', 'password']);
     
         // 7. Return the new user (excluding the password)
-        res.status(201).json(newUser);
+        res.status(201).json({
+          id: newUser.id,
+          username: newUser.username
+        });
       } catch (error) {
         console.error("Error registering user:", error);
         res.status(500).json({ message: "Internal server error" });
