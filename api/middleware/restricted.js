@@ -3,7 +3,7 @@ const { JWT_SECRET } = require('../../secrets')
 
 module.exports = (req, res, next) => {
 
-  const token = req.headers.authorization 
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 
   // 2. Check for missing token
   if (!token) {
